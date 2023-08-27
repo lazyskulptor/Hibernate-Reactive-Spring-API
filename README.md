@@ -8,4 +8,4 @@ This Project is to provide `Hibernate Reactive` Adapter for Spring-Boot.
 
 
 ---
-This was separated from (template project)[https://github.com/lazyskulptor/springboot-webflux-template]. Therefore full example of usage of this proejct will be updated in there.
+This was separated from [template project](https://github.com/lazyskulptor/springboot-webflux-template). Therefore full example of usage of this proejct will be updated in there.
