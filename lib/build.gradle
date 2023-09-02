@@ -30,14 +30,12 @@ dependencies {
 
     implementation 'org.apache.commons:commons-dbcp2:2.9.0'
 
-    implementation "org.liquibase:liquibase-core:4.23.1"
     implementation "javax.validation:validation-api:2.0.1.Final"
     compileOnly 'org.projectlombok:lombok:1.18.28'
 
-//    testRuntimeOnly 'org.springframework.boot:spring-boot-devtools'
-//    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testRuntimeOnly 'org.springframework.boot:spring-boot-devtools:3.1.2'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:3.1.2'
     annotationProcessor 'org.projectlombok:lombok:1.18.28'
-//    testImplementation 'io.projectreactor:reactor-test'
 
 
     // Use JUnit Jupiter for testing.
@@ -45,11 +43,10 @@ dependencies {
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'org.apache.commons:commons-math3:3.6.1'
-
-    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation 'com.google.guava:guava:32.1.1-jre'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.1.2'
+    testImplementation 'io.projectreactor:reactor-test:3.5.8'
+    testImplementation 'org.testcontainers:junit-jupiter:1.18.3'
+    testImplementation "org.testcontainers:mysql:1.18.3"
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

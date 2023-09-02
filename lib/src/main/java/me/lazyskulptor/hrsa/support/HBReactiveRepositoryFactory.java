@@ -27,12 +27,16 @@ class HBReactiveRepositoryFactory extends ReactiveRepositoryFactorySupport {
         Assert.notNull(domainClass, "Domain class must not be null!");
         Assert.notNull(sessionFactory, "Mutiny.SessionFactory must not be null!");
         Metamodel metamodel = sessionFactory.getMetamodel();
+        System.out.println("ATTENTION");
+        System.out.println(domainClass);
         return new HrsaEntityInformation<>(domainClass, metamodel);
     }
 
     @Override
     protected final Object getTargetRepository(RepositoryInformation information) {
         var domainClass = information.getDomainType();
+        System.out.println("ATTENTION");
+        System.out.println(domainClass);
         return getTargetRepositoryViaReflection(information, sessionFactory, dispatcher, information.getDomainType());
     }
 
