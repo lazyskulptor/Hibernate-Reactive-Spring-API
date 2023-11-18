@@ -1,5 +1,6 @@
 package me.lazyskulptor.hrsa.autoconfigure;
 
+import lombok.extern.slf4j.Slf4j;
 import me.lazyskulptor.hrsa.support.DefaultSessionDispatcher;
 import me.lazyskulptor.hrsa.support.HrsaTransactionManager;
 import me.lazyskulptor.hrsa.support.SessionDispatcher;
@@ -9,32 +10,29 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.TransactionManager;
 
 @Configuration
+@Slf4j
 @ConditionalOnClass(Mutiny.SessionFactory.class)
 public class HrsaAutoConfiguration {
 
 
-    private HrsaTransactionManager manager;
     @Bean
-    public HrsaTransactionManager transactionManager(@NonNull Mutiny.SessionFactory sessionFactory) {
-        return getManager(sessionFactory);
+    public ReactiveTransactionManager transactionManager(@NonNull Mutiny.SessionFactory sessionFactory) {
+        log.debug("init transactionManager with sessionFactory({})", sessionFactory);
+        return new HrsaTransactionManager(sessionFactory);
     }
 
     @Bean
     @Primary
     public SessionDispatcher sessionDispatcher(@NonNull Mutiny.SessionFactory sessionFactory, TransactionManager transactionManager) {
         if (!(transactionManager instanceof HrsaTransactionManager)) {
+            log.debug("init sessionDispatcher with {}", transactionManager);
             return new DefaultSessionDispatcher(sessionFactory);
         }
-        return getManager(sessionFactory);
-    }
-
-    private synchronized HrsaTransactionManager getManager(Mutiny.SessionFactory sessionFactory) {
-        if (manager == null) {
-            manager = new HrsaTransactionManager(sessionFactory);
-        }
-        return manager;
+        log.debug("init sessionDispatcher as HrsaTransactionManager with {}", transactionManager);
+        return (HrsaTransactionManager) transactionManager;
     }
 }
