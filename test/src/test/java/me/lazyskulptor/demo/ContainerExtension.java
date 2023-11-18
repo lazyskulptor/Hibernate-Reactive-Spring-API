@@ -1,4 +1,4 @@
-package me.lazyskulptor.hrsaclient;
+package me.lazyskulptor.demo;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
