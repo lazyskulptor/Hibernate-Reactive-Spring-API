@@ -2,6 +2,7 @@ package me.lazyskulptor.hrsa.support;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.converters.uni.UniReactorConverters;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.hibernate.reactive.mutiny.impl.MutinySessionImpl;
 import org.hibernate.reactive.pool.ReactiveConnection;
@@ -20,11 +21,13 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.function.Function;
 
+@Slf4j
 public class HrsaTransactionManager extends AbstractReactiveTransactionManager implements InitializingBean, SessionDispatcher {
 
     private Mutiny.SessionFactory sessionFactory;
 
     public HrsaTransactionManager(@NonNull Mutiny.SessionFactory sessionFactory) {
+        log.debug("HrsaTransactionManager is instanticated with ({})", sessionFactory);
         setSessionFactory(sessionFactory);
         afterPropertiesSet();
     }
