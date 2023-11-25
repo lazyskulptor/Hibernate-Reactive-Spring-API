@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.lazyskulptor.hrsa.support.DefaultSessionDispatcher;
 import me.lazyskulptor.hrsa.support.HrsaTransactionManager;
 import me.lazyskulptor.hrsa.support.SessionDispatcher;
+import me.lazyskulptor.hrsa.support.TransactionDispatcher;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,6 @@ public class HrsaAutoConfiguration {
             return new DefaultSessionDispatcher(sessionFactory);
         }
         log.debug("init sessionDispatcher as HrsaTransactionManager with {}", transactionManager);
-        return (HrsaTransactionManager) transactionManager;
+        return new TransactionDispatcher((HrsaTransactionManager) transactionManager);
     }
 }

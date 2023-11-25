@@ -19,10 +19,9 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.function.Function;
 
 @Slf4j
-public class HrsaTransactionManager extends AbstractReactiveTransactionManager implements InitializingBean, SessionDispatcher {
+public class HrsaTransactionManager extends AbstractReactiveTransactionManager implements InitializingBean {
 
     private Mutiny.SessionFactory sessionFactory;
 
@@ -40,21 +39,9 @@ public class HrsaTransactionManager extends AbstractReactiveTransactionManager i
     }
 
     @Override
-    public <R> Mono<R> apply(Function<Mutiny.Session, Uni<R>> work) {
-        return TransactionSynchronizationManager.forCurrentTransaction()
-                .map(syncManager -> (HrsaSessionHolder)syncManager.getResource(sessionFactory))
-                .map(HrsaSessionHolder::getSession)
-                .map(work)
-                .switchIfEmpty(Mono.just(obtainSessionFactory()
-                        .withSession(session -> work.apply(session).call(session::flush)
-                                .log("LOCAL SESSION[" + session.hashCode() + "]"))))
-                .flatMap(uni -> uni.convert().with(UniReactorConverters.toMono()));
-    }
-
-    @Override
     protected Object doGetTransaction(TransactionSynchronizationManager synchronizationManager) throws TransactionException {
         SessionFactoryTransactionObject txObject = new SessionFactoryTransactionObject();
-        HrsaSessionHolder holder = (HrsaSessionHolder) synchronizationManager.getResource(obtainSessionFactory());
+        HrsaSessionHolder holder = (HrsaSessionHolder) synchronizationManager.getResource(getSessionFactory());
         txObject.setSessionHolder(holder, false);
         return txObject;
     }
@@ -74,9 +61,7 @@ public class HrsaTransactionManager extends AbstractReactiveTransactionManager i
             if(!txObject.hasSessionHolder() || txObject.getSessionHolder().isSynchronizedWithTransaction()) {
                 var newConn = getSessionFactory().openSession();
                 sessionUni = newConn.invoke(sess -> {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Acquired Session [" + newConn + "] for Hibernate Reactive transaction");
-                    }
+                    log.debug("Acquired Session [" + newConn + "] for Hibernate Reactive transaction");
                     txObject.setSessionHolder(new HrsaSessionHolder(sess), true);
                 });
             } else {
@@ -97,7 +82,7 @@ public class HrsaTransactionManager extends AbstractReactiveTransactionManager i
                             }
                             // Bind the connection holder to the thread.
                             if (txObject.isNewSessionHolder()) {
-                                synchronizationManager.bindResource(obtainSessionFactory(), txObject.getSessionHolder());
+                                synchronizationManager.bindResource(getSessionFactory(), txObject.getSessionHolder());
                             }
                         })
                         .replaceWith(session)
@@ -137,9 +122,7 @@ public class HrsaTransactionManager extends AbstractReactiveTransactionManager i
     protected Mono<Void> doCommit(TransactionSynchronizationManager synchronizationManager, GenericReactiveTransaction status) throws TransactionException {
         SessionFactoryTransactionObject txObject = (SessionFactoryTransactionObject) status.getTransaction();
         Mutiny.Session session = txObject.getSessionHolder().getSession();
-        if (status.isDebug()) {
-            logger.debug("Committing Hibernate Reactive transaction on Mutiny.Session [" + session + "]");
-        }
+        log.debug("Committing Hibernate Reactive transaction on Mutiny.Session [" + session + "]");
         var ssImpl = (MutinySessionImpl) txObject.getSessionHolder().getSession();
         return Uni.createFrom().completionStage(ssImpl.getReactiveConnection().commitTransaction())
                 .convert().with(UniReactorConverters.toMono())
@@ -160,15 +143,9 @@ public class HrsaTransactionManager extends AbstractReactiveTransactionManager i
     }
 
     @NonNull
-    @Override
-    public Mutiny.SessionFactory getSessionFactory() {
+    Mutiny.SessionFactory getSessionFactory() {
+        Assert.state(this.sessionFactory != null, "No SessionFactory set");
         return this.sessionFactory;
-    }
-
-    public Mutiny.SessionFactory obtainSessionFactory() {
-        Mutiny.SessionFactory factory = getSessionFactory();
-        Assert.state(factory != null, "No SessionFactory set");
-        return factory;
     }
 
     /**
