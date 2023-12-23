@@ -15,16 +15,16 @@ import java.util.function.Function;
 public class TransactionDispatcher implements InitializingBean, SessionDispatcher {
 
     @NonNull
-    private HrsaTransactionManager txManager;
+    private Mutiny.SessionFactory sessionFactory;
 
-    public TransactionDispatcher(@NonNull HrsaTransactionManager txManager) {
-        this.txManager = txManager;
+    public TransactionDispatcher(@NonNull Mutiny.SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
         afterPropertiesSet();
     }
 
     @Override
     public Mutiny.SessionFactory getSessionFactory() {
-        return this.txManager.getSessionFactory();
+        return this.sessionFactory;
     }
 
     @Override

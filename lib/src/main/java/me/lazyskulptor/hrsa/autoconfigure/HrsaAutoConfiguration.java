@@ -34,6 +34,6 @@ public class HrsaAutoConfiguration {
             return new DefaultSessionDispatcher(sessionFactory);
         }
         log.debug("init sessionDispatcher as HrsaTransactionManager with {}", transactionManager);
-        return new TransactionDispatcher((HrsaTransactionManager) transactionManager);
+        return new TransactionDispatcher(sessionFactory);
     }
 }

@@ -23,9 +23,7 @@ public class AccountTest {
     Mutiny.SessionFactory sessionFactory;
 
     @Test
-    @Transactional
     void testSave() throws InterruptedException {
-//        System.out.println(platformTransactionManager);
 
         Account account = Account.builder()
                 .username(RandomStringUtils.randomAlphanumeric(16))
