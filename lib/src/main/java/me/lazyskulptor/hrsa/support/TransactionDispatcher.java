@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.reactive.TransactionSynchronizationManager;
 import reactor.core.publisher.Mono;
 
@@ -15,7 +16,7 @@ import java.util.function.Function;
 public class TransactionDispatcher implements InitializingBean, SessionDispatcher {
 
     @NonNull
-    private Mutiny.SessionFactory sessionFactory;
+    private final Mutiny.SessionFactory sessionFactory;
 
     public TransactionDispatcher(@NonNull Mutiny.SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
@@ -30,16 +31,14 @@ public class TransactionDispatcher implements InitializingBean, SessionDispatche
     @Override
     public <R> Mono<R> apply(Function<Mutiny.Session, Uni<R>> work) {
         return TransactionSynchronizationManager.forCurrentTransaction()
-                .map(syncManager -> (HrsaSessionHolder)syncManager.getResource(this.getSessionFactory()))
-                .map(HrsaSessionHolder::getSession)
+                .mapNotNull(syncManager -> (HrsaSessionHolder)syncManager.getResource(this.getSessionFactory()))
+                .onErrorResume(NoTransactionException.class, (e) -> Mono.empty())
+                .mapNotNull(HrsaSessionHolder::getSession)
                 .map(work)
                 .switchIfEmpty(Mono.just(this.getSessionFactory()
-                        .withSession(session -> {
-                            log.debug("SESSION", session);
-                            return work.apply(session)
-                                    .call(session::flush)
-                                    .log("LOCAL SESSION[" + session.hashCode() + "]");
-                        })))
+                        .withSession(session -> work.apply(session)
+                                .call(session::flush)
+                                .log("LOCAL SESSION[" + session.hashCode() + "]"))))
                 .flatMap(uni -> uni.convert().with(UniReactorConverters.toMono()));
     }
 

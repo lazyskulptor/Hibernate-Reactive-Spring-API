@@ -70,7 +70,7 @@ public class TransactionTest {
             var mono = accountRepository.save(entity).log("AFTER SAVE")
                     .then(accountRepository.flush().singleOptional()).log("ON FLUSH")
                     .flatMap(_saved -> accountRepository.findOne(new IdEqualsSpec(entity.getId()))).log("IN FLATMAP")
-                    .contextWrite(c -> c.put(DemoTxManager.SESSION_KEY, new AtomicReference(session)));
+                    .contextWrite(c -> c.put(DemoTxManager.SESSION_KEY, new AtomicReference<>(session)));
             return Uni.createFrom().converter(UniReactorConverters.fromMono(), mono);
         }).await().indefinitely();
 
