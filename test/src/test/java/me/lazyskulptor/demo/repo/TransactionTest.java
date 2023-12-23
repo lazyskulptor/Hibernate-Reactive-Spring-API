@@ -5,12 +5,12 @@ import static org.mockito.Mockito.*;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.converters.uni.UniReactorConverters;
+import me.lazyskulptor.hrsa.domain.spec.Logic;
 import me.lazyskulptor.hrsa.repository.SimpleHrsaRepository;
 import my.lazyskulptor.adapter.DemoTxManager;
 import me.lazyskulptor.demo.ContainerExtension;
 import me.lazyskulptor.demo.IdEqualsSpec;
 import me.lazyskulptor.demo.model.Account;
-import me.lazyskulptor.demo.spec.Logic;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.hibernate.reactive.mutiny.impl.MutinySessionImpl;
@@ -70,7 +70,7 @@ public class TransactionTest {
             var mono = accountRepository.save(entity).log("AFTER SAVE")
                     .then(accountRepository.flush().singleOptional()).log("ON FLUSH")
                     .flatMap(_saved -> accountRepository.findOne(new IdEqualsSpec(entity.getId()))).log("IN FLATMAP")
-                    .contextWrite(c -> c.put(DemoTxManager.SESSION_KEY, new AtomicReference(session)));
+                    .contextWrite(c -> c.put(DemoTxManager.SESSION_KEY, new AtomicReference<>(session)));
             return Uni.createFrom().converter(UniReactorConverters.fromMono(), mono);
         }).await().indefinitely();
 
